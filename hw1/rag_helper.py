@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 INSTRUCTIONS = """
 Your task is to answer questions from the course participants
 based on the provided context.
@@ -13,6 +15,12 @@ QUESTION: {question}
 CONTEXT:
 {context}
 """.strip()
+
+
+@dataclass
+class RAGResponse:
+    answer: str
+    usage: object
 
 
 class RAGBase:
@@ -43,7 +51,6 @@ class RAGBase:
         lines = []
 
         for doc in search_results:
-            print(doc)
             lines.append("C: " + doc["content"])
             lines.append("Q: " + doc["filename"])
             lines.append("")
@@ -64,12 +71,9 @@ class RAGBase:
             model=self.model, input=input_messages
         )
 
-        return (response.output_text, response.usage)
+        return RAGResponse(answer=response.output_text, usage=response.usage)
 
     def rag(self, query):
-        print(f"qa: {query}")
         search_results = self.search(query)
-        print(search_results)
         prompt = self.build_prompt(query, search_results)
-        answer = self.llm(prompt)
-        return answer
+        return self.llm(prompt)
